@@ -22,15 +22,23 @@ export class CompanyService {
 
     // Повертає верхньорівневу компанію
     getTopLevelParent(company) {
+        if (!company) {
+            return null; // або обробка помилки
+        }
         let current = company;
         while (current.parentId !== null) {
             current = this.findCompanyById(current.parentId);
+            if (!current) {
+                return null; // або обробка помилки
+            }
         }
         return current;
     }
 
-    // Підраховує кількість співробітників для компанії та її дочірніх компаній
     getEmployeeCountForCompanyAndChildren(company) {
+        if (!company) {
+            return 0; // або обробка помилки
+        }
         let totalEmployees = company.employeeCount;
         this.companies
             .filter(c => c.parentId === company.id)
