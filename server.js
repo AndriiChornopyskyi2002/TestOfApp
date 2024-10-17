@@ -2,7 +2,10 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-export class Company {
+// Middleware для обробки JSON у запитах
+app.use(express.json());
+
+class Company {
     constructor(id, parentId, employeeCount) {
         this.id = id;
         this.parentId = parentId;
@@ -10,7 +13,7 @@ export class Company {
     }
 }
 
-export class CompanyService {
+class CompanyService {
     constructor(companies) {
         this.companies = companies;
     }
@@ -61,21 +64,67 @@ const companies = [
 // Ініціалізуємо сервіс компанії
 const companyService = new CompanyService(companies);
 
-// Маршрут для отримання верхньорівневої компанії
-app.get('/top-level-parent/:id', (req, res) => {
-    const companyId = parseInt(req.params.id);
-    const company = companyService.findCompanyById(companyId);
+// Маршрут для створення компанії
+app.post('/company', (req, res) => {
+    const { id, parentId, employeeCount } = req.body;
 
-    if (!company) {
-        return res.status(404).json({ error: 'Company not found' });
+    // Перевірка на наявність необхідних полів
+    if (id === undefined || parentId === undefined || employeeCount === undefined) {
+        return res.status(400).json({ error: 'Missing fields' });
     }
 
-    const topLevelParent = companyService.getTopLevelParent(company);
-    res.json(topLevelParent);
+    const newCompany = new Company(id, parentId, employeeCount);
+    companyService.companies.push(newCompany);
+    res.status(201).json(newCompany);
 });
 
-// Маршрут для отримання кількості співробітників
-app.get('/employee-count/:id', (req, res) => {
+// Маршрут для отримання компанії за ID
+app.get('/company/:id', (req, res) => {
+    const companyId = parseInt(req.params.id);
+    const company = companyService.findCompanyById(companyId);
+    if (!company) {
+        return res.status(404).json({ error: 'Company not found' });
+    }
+    res.json(company);
+});
+
+// Маршрут для оновлення компанії
+app.put('/company/:id', (req, res) => {
+    const companyId = parseInt(req.params.id);
+    const company = companyService.findCompanyById(companyId);
+    if (!company) {
+        return res.status(404).json({ error: 'Company not found' });
+    }
+    const { parentId, employeeCount } = req.body;
+    company.parentId = parentId !== undefined ? parentId : company.parentId;
+    company.employeeCount = employeeCount !== undefined ? employeeCount : company.employeeCount;
+    res.json(company);
+});
+
+// Маршрут для видалення компанії
+app.delete('/company/:id', (req, res) => {
+    const companyId = parseInt(req.params.id);
+    const index = companyService.companies.findIndex(company => company.id === companyId);
+    if (index === -1) {
+        return res.status(404).json({ error: 'Company not found' });
+    }
+    const deletedCompany = companyService.companies.splice(index, 1);
+    res.json(deletedCompany);
+});
+
+// Маршрут для отримання кількості співробітників компанії
+app.get('/company/:id/employee-count', (req, res) => {
+    const companyId = parseInt(req.params.id);
+    const company = companyService.findCompanyById(companyId);
+    if (!company) {
+        return res.status(404).json({ error: 'Company not found' });
+    }
+    const totalEmployees = companyService.getEmployeeCountForCompanyAndChildren(company);
+    res.json({ totalEmployees });
+});
+
+// Маршрут для отримання кількості дочірніх компаній
+app.get('/children-count/:id', (req, res) => {
     const companyId = parseInt(req.params.id);
     const company = companyService.findCompanyById(companyId);
 
@@ -83,8 +132,8 @@ app.get('/employee-count/:id', (req, res) => {
         return res.status(404).json({ error: 'Company not found' });
     }
 
-    const totalEmployees = companyService.getEmployeeCountForCompanyAndChildren(company);
-    res.json({ totalEmployees });
+    const childrenCount = companyService.companies.filter(c => c.parentId === companyId).length;
+    res.json({ childrenCount });
 });
 
 // Запуск сервера

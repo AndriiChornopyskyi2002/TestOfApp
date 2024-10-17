@@ -1,0 +1,27 @@
+### POST-запит на створення компанії
+POST http://localhost:3000/company
+Content-Type: application/json
+
+{
+  "id": 6,
+  "parentId": 1,
+  "employeeCount": 40
+}
+
+### GET-запит для отримання компанії за ID
+GET http://localhost:3000/company/1
+
+### PUT-запит на оновлення компанії
+PUT http://localhost:3000/company/1
+Content-Type: application/json
+
+{
+  "parentId": 3,
+  "employeeCount": 120
+}
+
+### DELETE-запит на видалення компанії
+DELETE http://localhost:3000/company/3
+
+### GET-запит для отримання кількості співробітників
+GET http://localhost:3000/company/1/employee-count
