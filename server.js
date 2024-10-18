@@ -5,7 +5,7 @@ const port = 3000;
 // Middleware для обробки JSON у запитах
 app.use(express.json());
 
-class Company {
+export class Company {
     constructor(id, parentId, employeeCount) {
         this.id = id;
         this.parentId = parentId;
@@ -13,7 +13,7 @@ class Company {
     }
 }
 
-class CompanyService {
+export class CompanyService {
     constructor(companies) {
         this.companies = companies;
     }

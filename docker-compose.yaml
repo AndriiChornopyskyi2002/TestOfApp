@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb-test
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express-test
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb  # залиште так
+      - ME_CONFIG_MONGODB_PORT=27017
+      - ME_CONFIG_BASICAUTH_USERNAME=admin  # змініть ім'я користувача, якщо потрібно
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin  # змініть пароль, якщо потрібно
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo_data:
